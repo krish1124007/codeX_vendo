@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VendorBridge
+
+VendorBridge is a procurement and vendor management dashboard built with Next.js 16 and React 19.
+It supports RFQs, quotations, approval workflows, purchase orders, invoices, activity reporting, and role-based access control.
+
+## Features
+
+- Authentication and registration flows
+- Role-based dashboard navigation
+- RFQ creation and vendor invitation
+- Quotation comparison and selection
+- Approval queue with multi-level workflow
+- Purchase order and invoice tracking
+- Reporting and analytics cards
+- Vendor management and activity history
+
+## Project Structure
+
+- `src/app/` - Next.js app routes and layouts
+- `src/components/` - reusable UI components and form controls
+- `src/lib/` - auth helpers, RBAC, and shared utilities
+- `src/services/` - data access and business logic
+- `prisma/` - Prisma schema and data model
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The root route redirects to `/dashboard`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build and Production
 
-## Learn More
+Build the app:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Start the production server:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm start
+```
 
-## Deploy on Vercel
+## Notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- The project includes Prisma schema support, but the current app uses an in-memory store implementation in `src/lib/db/store.ts`.
+- If you switch to a live PostgreSQL database, configure `DATABASE_URL` and run Prisma migrations as needed.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Dependencies
+
+- `next` 16.2.7
+- `react` 19.2.4
+- `react-dom` 19.2.4
+- `prisma` / `@prisma/client`
+- `react-hook-form`
+- `zod`
+- `recharts`
+- `lucide-react`
+- `tailwindcss` (with PostCSS plugin)
+
+## License
+
+This repository is private and intended for internal use.
