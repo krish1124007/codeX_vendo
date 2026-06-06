@@ -71,6 +71,10 @@ npm start
 - `lucide-react`
 - `tailwindcss` (with PostCSS plugin)
 
+## System Architecture
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the app architecture, routing model, data flow, and deployment notes.
+
 ## License
 
 This repository is private and intended for internal use.
