@@ -5,6 +5,7 @@ import { Bell, Check, Trash2, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils/cn";
 import { markNotificationAsReadAction, markAllNotificationsAsReadAction } from "@/actions/notifications";
+import { toast } from "sonner";
 import type { Notification } from "@prisma/client";
 
 export function NotificationsDropdown({
@@ -32,11 +33,13 @@ export function NotificationsDropdown({
   }, [isOpen]);
 
   const handleMarkAsRead = async (id: string) => {
-    await markNotificationAsReadAction(id);
+    const res = await markNotificationAsReadAction(id);
+    if (res?.error) toast.error(res.error);
   };
 
   const handleMarkAllAsRead = async () => {
-    await markAllNotificationsAsReadAction();
+    const res = await markAllNotificationsAsReadAction();
+    if (res?.error) toast.error(res.error);
   };
 
   return (

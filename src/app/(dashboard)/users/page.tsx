@@ -56,13 +56,7 @@ export default async function UsersPage() {
                   <TD className="text-muted">{formatDate(u.createdAt)}</TD>
                   <TD className="text-right">
                     {u.id !== currentUser.id && (
-                      <form action={async (formData: FormData) => {
-                        "use server";
-                        const newRole = formData.get("role") as any;
-                        await updateUserRoleAction(u.id, newRole);
-                      }}>
-                        <RoleSelect defaultValue={u.role} roles={roles} />
-                      </form>
+                      <RoleSelect userId={u.id} defaultValue={u.role} roles={roles} />
                     )}
                   </TD>
                 </TR>

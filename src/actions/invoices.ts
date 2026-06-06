@@ -6,12 +6,17 @@ import { markInvoicePaid } from "@/services/procurement";
 
 export async function markInvoicePaidAction(
   invoiceId: string,
-): Promise<{ ok: boolean }> {
-  const user = await requirePermission("invoice:manage");
-  await markInvoicePaid({ invoiceId, actorId: user.id, actorName: user.name });
-  revalidatePath("/invoices");
-  revalidatePath("/purchase-orders");
-  return { ok: true };
+): Promise<{ ok?: boolean; error?: string }> {
+  try {
+    const user = await requirePermission("invoice:manage");
+    await markInvoicePaid({ invoiceId, actorId: user.id, actorName: user.name });
+    revalidatePath("/invoices");
+    revalidatePath("/purchase-orders");
+    return { ok: true };
+  } catch (error: any) {
+    if (error.message === "NEXT_REDIRECT") throw error;
+    return { error: error.message || "An unexpected error occurred." };
+  }
 }
 
 export async function sendInvoiceEmailAction(invoiceId: string): Promise<{ ok?: boolean; error?: string }> {

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useTransition } from "react";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,10 @@ export function EmailInvoiceButton({ invoiceId }: { invoiceId: string }) {
   const handleSendEmail = () => {
     startTransition(async () => {
       const result = await sendInvoiceEmailAction(invoiceId);
-      if (result.ok) {
-        alert("Invoice emailed to vendor successfully!");
+      if (result.error) {
+        toast.error("Failed to send email: " + result.error);
       } else {
-        alert("Failed to send email: " + result.error);
+        toast.success("Invoice emailed to vendor successfully!");
       }
     });
   };

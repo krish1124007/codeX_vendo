@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { selectQuotationAction } from "@/actions/quotations";
@@ -17,7 +18,11 @@ export function SelectQuotationButton({
 
   function handle() {
     startTransition(async () => {
-      await selectQuotationAction(quotationId);
+      const res = await selectQuotationAction(quotationId);
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
       router.push("/approvals");
     });
   }
