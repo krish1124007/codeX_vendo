@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "@/lib/auth/rbac";
-import { decideApproval } from "@/services/procurement";
+import { decideApproval, getApproval } from "@/services/procurement";
 import type { ApprovalStatus } from "@/types";
 
 export async function decideApprovalAction(input: {
@@ -11,6 +11,18 @@ export async function decideApprovalAction(input: {
   remarks?: string;
 }): Promise<{ ok: boolean; poId?: string }> {
   const user = await requirePermission("approval:decide");
+
+  const approval = await getApproval(input.approvalId);
+  if (!approval) throw new Error("Approval not found");
+
+  const hasLevelPermission =
+    user.role === "ADMIN" ||
+    (approval.level === "L1" && user.role === "PROCUREMENT_OFFICER") ||
+    (approval.level === "L2" && user.role === "MANAGER");
+
+  if (!hasLevelPermission) {
+    throw new Error("You do not have permission to decide this level of approval");
+  }
 
   const { purchaseOrder } = await decideApproval({
     approvalId: input.approvalId,

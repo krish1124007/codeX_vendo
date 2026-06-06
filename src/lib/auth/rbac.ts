@@ -54,6 +54,8 @@ export const PERMISSIONS: Record<Role, Permission[]> = {
     "po:view",
     "invoice:view",
     "invoice:manage",
+    "approval:view",
+    "approval:decide",
   ],
   MANAGER: [
     "dashboard:view",

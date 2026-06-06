@@ -4,14 +4,20 @@ import { LogOut, Menu } from "lucide-react";
 import Image from "next/image";
 import { logoutAction } from "@/actions/auth";
 import { humanizeEnum } from "@/lib/utils/format";
+import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 import type { User } from "@/types";
+import type { Notification } from "@prisma/client";
 
 export function Topbar({
   user,
   onOpenMobile,
+  notifications,
+  unreadCount,
 }: {
   user: User;
   onOpenMobile: () => void;
+  notifications: Notification[];
+  unreadCount: number;
 }) {
   const initials = user.name
     .split(" ")
@@ -32,7 +38,9 @@ export function Topbar({
       </button>
 
       <div className="ml-auto flex items-center gap-3">
-        <div className="hidden text-right sm:block">
+        <NotificationsDropdown notifications={notifications} unreadCount={unreadCount} />
+        
+        <div className="hidden text-right sm:block ml-2 border-l border-border pl-4">
           <p className="text-sm font-medium leading-tight">{user.name}</p>
           <p className="text-xs text-muted">{humanizeEnum(user.role)}</p>
         </div>

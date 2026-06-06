@@ -29,8 +29,14 @@ export default async function ApprovalDetailPage({
   const lowerApproved = chain
     .filter((a) => a.level < approval.level)
     .every((a) => a.status === "APPROVED");
+    
+  const hasLevelPermission =
+    user.role === "ADMIN" ||
+    (approval.level === "L1" && user.role === "PROCUREMENT_OFFICER") ||
+    (approval.level === "L2" && user.role === "MANAGER");
+
   const actionable =
-    approval.status === "PENDING" && lowerApproved && can(user.role, "approval:decide");
+    approval.status === "PENDING" && lowerApproved && can(user.role, "approval:decide") && hasLevelPermission;
 
   // Timeline stages
   const l1 = chain.find((a) => a.level === "L1");

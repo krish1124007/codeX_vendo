@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { logActivity } from "@/services/activity";
+import { createManyNotifications, createNotification } from "@/services/notifications";
 import type {
   Approval,
   ApprovalStatus,
@@ -88,6 +89,23 @@ export async function createRFQ(input: {
     actorId: input.createdById,
     actorName: input.actorName,
   });
+
+  if (input.publish && input.vendorIds.length > 0) {
+    const vendors = await prisma.vendor.findMany({
+      where: { id: { in: input.vendorIds } },
+      select: { userId: true },
+    });
+    const userIds = vendors.map(v => v.userId).filter(Boolean) as string[];
+    if (userIds.length > 0) {
+      await createManyNotifications({
+        userIds,
+        type: "INFO",
+        title: "New RFQ Invitation",
+        message: `You have been invited to submit a quotation for RFQ: ${input.title}`,
+      });
+    }
+  }
+
   return rfq as unknown as RFQ;
 }
 
@@ -178,6 +196,22 @@ export async function createQuotation(input: {
     entityId: quotation.id,
     actorName: input.actorName ?? vendor?.name,
   });
+
+  const rfq = await prisma.rFQ.findUnique({ where: { id: input.rfqId }, select: { title: true } });
+  const internalUsers = await prisma.user.findMany({
+    where: { role: { in: ["ADMIN", "PROCUREMENT_OFFICER"] } },
+    select: { id: true },
+  });
+  const internalUserIds = internalUsers.map(u => u.id);
+
+  if (internalUserIds.length > 0) {
+    await createManyNotifications({
+      userIds: internalUserIds,
+      type: "INFO",
+      title: "New Quotation Submitted",
+      message: `${vendor?.name ?? "A vendor"} has submitted a quotation for RFQ: ${rfq?.title ?? "Unknown"}`,
+    });
+  }
   
   return quotation as unknown as Quotation;
 }
@@ -317,6 +351,34 @@ export async function selectQuotation(input: {
     actorId: input.actorId,
     actorName: input.actorName,
   });
+
+  // Notifications for vendors
+  if (vendor?.userId) {
+    await createNotification({
+      userId: vendor.userId,
+      type: "SUCCESS",
+      title: "Quotation Selected!",
+      message: `Congratulations! Your quotation for RFQ: ${rfq?.title} has been selected.`,
+    });
+  }
+
+  // Notify rejected vendors
+  const rejectedQuotations = await prisma.quotation.findMany({
+    where: { rfqId: quotation.rfqId, status: "REJECTED" },
+    include: { vendor: true }
+  });
+  const rejectedUserIds = rejectedQuotations
+    .map(q => q.vendor.userId)
+    .filter(Boolean) as string[];
+
+  if (rejectedUserIds.length > 0) {
+    await createManyNotifications({
+      userIds: rejectedUserIds,
+      type: "INFO",
+      title: "RFQ Closed",
+      message: `Thank you for participating. Another vendor was selected for RFQ: ${rfq?.title}.`,
+    });
+  }
 }
 
 export async function decideApproval(input: {
