@@ -1,6 +1,7 @@
 "use client";
 
 import { LogOut, Menu } from "lucide-react";
+import Image from "next/image";
 import { logoutAction } from "@/actions/auth";
 import { humanizeEnum } from "@/lib/utils/format";
 import type { User } from "@/types";
@@ -35,8 +36,12 @@ export function Topbar({
           <p className="text-sm font-medium leading-tight">{user.name}</p>
           <p className="text-xs text-muted">{humanizeEnum(user.role)}</p>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
-          {initials}
+        <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-white">
+          {user.avatarUrl ? (
+            <Image src={user.avatarUrl} alt={user.name} fill className="object-cover" />
+          ) : (
+            initials
+          )}
         </div>
         <form action={logoutAction}>
           <button

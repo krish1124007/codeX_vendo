@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { createVendorAction, type VendorFormState } from "@/actions/vendors";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,9 @@ export function AddVendorDialog() {
     {},
   );
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (state.ok) setOpen(false);
   }, [state.ok]);
@@ -35,8 +39,8 @@ export function AddVendorDialog() {
         <Plus size={16} /> Add Vendor
       </Button>
 
-      {open && (
-        <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 p-4 backdrop-blur-sm">
+      {mounted && open && createPortal(
+        <div className="animate-fade-in fixed inset-0 z-[100] flex items-center justify-center bg-foreground/30 p-4 backdrop-blur-sm">
           <div className="animate-fade-up w-full max-w-lg rounded-[var(--radius-card)] border border-border bg-card shadow-pop">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <h2 className="text-base font-semibold">Add vendor</h2>
@@ -98,7 +102,8 @@ export function AddVendorDialog() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
