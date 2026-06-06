@@ -11,7 +11,15 @@ import { formatCurrency, formatDate } from "@/lib/utils/format";
 
 export default async function InvoicesPage() {
   const user = await requirePermission("invoice:view");
-  const [invoices, vendors] = await Promise.all([listInvoices(), getVendorMap()]);
+  let vendorId: string | undefined = undefined;
+  
+  if (user.role === "VENDOR") {
+    const { getVendorByUserIdOrEmail } = await import("@/services/vendors");
+    const vendor = await getVendorByUserIdOrEmail(user.id, user.email);
+    if (vendor) vendorId = vendor.id;
+  }
+
+  const [invoices, vendors] = await Promise.all([listInvoices(vendorId), getVendorMap()]);
   const manage = can(user.role, "invoice:manage");
 
   return (

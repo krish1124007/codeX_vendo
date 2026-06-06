@@ -9,8 +9,16 @@ import { getVendorMap } from "@/services/vendors";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 
 export default async function PurchaseOrdersPage() {
-  await requirePermission("po:view");
-  const [pos, vendors] = await Promise.all([listPurchaseOrders(), getVendorMap()]);
+  const user = await requirePermission("po:view");
+  let vendorId: string | undefined = undefined;
+  
+  if (user.role === "VENDOR") {
+    const { getVendorByUserIdOrEmail } = await import("@/services/vendors");
+    const vendor = await getVendorByUserIdOrEmail(user.id, user.email);
+    if (vendor) vendorId = vendor.id;
+  }
+
+  const [pos, vendors] = await Promise.all([listPurchaseOrders(vendorId), getVendorMap()]);
 
   return (
     <>
