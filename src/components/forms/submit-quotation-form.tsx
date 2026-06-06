@@ -6,6 +6,7 @@ import { submitQuotationAction } from "@/actions/quotations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils/format";
 import type { RFQ, Vendor, Quotation } from "@/types";
 
@@ -63,8 +64,13 @@ export function SubmitQuotationForm({
         notes,
         items: lines.map(({ name, quantity, unitPrice }) => ({ name, quantity, unitPrice })),
       });
-      if (res.error) setError(res.error);
-      else router.push(`/rfqs`);
+      if (res.error) {
+        setError(res.error);
+        toast.error(res.error);
+      } else {
+        toast.success(existingQuotation ? "Quotation updated successfully" : "Quotation submitted successfully");
+        router.push(`/rfqs`);
+      }
     });
   }
 

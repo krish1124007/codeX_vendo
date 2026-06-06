@@ -7,6 +7,7 @@ import { Plus, X } from "lucide-react";
 import { createVendorAction, type VendorFormState } from "@/actions/vendors";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
+import { toast } from "sonner";
 
 const CATEGORIES = ["IT Hardware", "Furniture", "Construction", "Logistics", "Stationery"];
 
@@ -30,8 +31,13 @@ export function AddVendorDialog() {
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (state.ok) setOpen(false);
-  }, [state.ok]);
+    if (state.ok) {
+      setOpen(false);
+      toast.success("Vendor added successfully");
+    } else if (state.error) {
+      toast.error(state.error);
+    }
+  }, [state.ok, state.error]);
 
   return (
     <>
