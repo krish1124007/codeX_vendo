@@ -10,18 +10,27 @@ import { listRFQs, listQuotations } from "@/services/procurement";
 export default async function QuotationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; q?: string }>;
 }) {
   await requirePermission("rfq:view");
-  const { status } = await searchParams;
+  const { status, q } = await searchParams;
   const [allRfqs, quotations] = await Promise.all([listRFQs(), listQuotations()]);
   
-  const rfqs = status && status !== "ALL"
-    ? allRfqs.filter((rfq) => rfq.status === status)
-    : allRfqs;
+  let rfqs = allRfqs;
+  if (status && status !== "ALL") {
+    rfqs = rfqs.filter((rfq) => rfq.status === status);
+  }
+  if (q && q.trim() !== "") {
+    const searchLower = q.trim().toLowerCase();
+    rfqs = rfqs.filter(
+      (rfq) =>
+        rfq.title.toLowerCase().includes(searchLower) ||
+        rfq.category.toLowerCase().includes(searchLower)
+    );
+  }
 
-  const countByRfq = quotations.reduce<Record<string, number>>((acc, q) => {
-    acc[q.rfqId] = (acc[q.rfqId] ?? 0) + 1;
+  const countByRfq = quotations.reduce<Record<string, number>>((acc, quot) => {
+    acc[quot.rfqId] = (acc[quot.rfqId] ?? 0) + 1;
     return acc;
   }, {});
 
@@ -34,6 +43,13 @@ export default async function QuotationsPage({
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted font-medium">Filter:</span>
             <form className="flex items-center gap-2">
+              <input
+                type="search"
+                name="q"
+                defaultValue={q ?? ""}
+                placeholder="Search RFQ or category..."
+                className="h-9 rounded-md border border-border bg-card px-3 py-1 text-sm shadow-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
               <select 
                 name="status"
                 defaultValue={status ?? "ALL"}

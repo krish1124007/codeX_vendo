@@ -27,13 +27,13 @@ export default async function CompareQuotationsPage({
   ]);
 
   const lowestTotal = quotations.length
-    ? Math.min(...quotations.map((q) => q.grandTotal))
+    ? Math.min(...quotations.map((q) => Number(q.grandTotal)))
     : 0;
   const selectionMade = quotations.some((q) => q.status === "SELECTED");
   const canSelect = can(user.role, "quotation:compare") && !selectionMade;
 
   const rows: { label: string; render: (i: number) => React.ReactNode }[] = [
-    { label: "Grand total", render: (i) => formatCurrency(quotations[i].grandTotal) },
+    { label: "Grand total", render: (i) => formatCurrency(Number(quotations[i].grandTotal)) },
     { label: "GST %", render: (i) => `${quotations[i].taxRate}%` },
     { label: "Delivery (days)", render: (i) => quotations[i].deliveryDays },
     {
@@ -73,7 +73,7 @@ export default async function CompareQuotationsPage({
                     Criteria
                   </th>
                   {quotations.map((q) => {
-                    const isLowest = q.grandTotal === lowestTotal;
+                    const isLowest = Number(q.grandTotal) === lowestTotal;
                     return (
                       <th
                         key={q.id}
@@ -106,7 +106,7 @@ export default async function CompareQuotationsPage({
                         key={q.id}
                         className={cn(
                           "px-4 py-3 font-medium",
-                          q.grandTotal === lowestTotal && "bg-success/10",
+                          Number(q.grandTotal) === lowestTotal && "bg-success/10",
                         )}
                       >
                         {row.render(i)}
@@ -117,7 +117,7 @@ export default async function CompareQuotationsPage({
                 <tr>
                   <td className="px-4 py-4 text-muted">Decision</td>
                   {quotations.map((q) => {
-                    const isLowest = q.grandTotal === lowestTotal;
+                    const isLowest = Number(q.grandTotal) === lowestTotal;
                     return (
                       <td
                         key={q.id}
