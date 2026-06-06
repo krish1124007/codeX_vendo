@@ -6,6 +6,7 @@ import { listUsers } from "@/services/users";
 import { formatDate } from "@/lib/utils/format";
 import { updateUserRoleAction } from "@/actions/users";
 import { Select } from "@/components/ui/input";
+import { RoleSelect } from "./role-select";
 
 export default async function UsersPage() {
   const currentUser = await requirePermission("users:manage");
@@ -60,16 +61,7 @@ export default async function UsersPage() {
                         const newRole = formData.get("role") as any;
                         await updateUserRoleAction(u.id, newRole);
                       }}>
-                        <select 
-                          name="role" 
-                          defaultValue={u.role}
-                          onChange={(e) => e.target.form?.requestSubmit()}
-                          className="rounded-lg border border-border bg-background px-2 py-1 text-xs focus:border-primary/60 focus:outline-none"
-                        >
-                          {roles.map(r => (
-                            <option key={r} value={r}>{r.replace("_", " ")}</option>
-                          ))}
-                        </select>
+                        <RoleSelect defaultValue={u.role} roles={roles} />
                       </form>
                     )}
                   </TD>

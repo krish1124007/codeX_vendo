@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { loginAction, quickLoginAction, type LoginState } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { toast } from "sonner";
 
 const DEMO_ACCOUNTS = [
   { id: "u_officer", label: "Procurement Officer" },
@@ -24,6 +25,12 @@ function SubmitButton() {
 
 export function LoginForm() {
   const [state, formAction] = useActionState<LoginState, FormData>(loginAction, {});
+
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(state.error);
+    }
+  }, [state]);
 
   return (
     <div className="space-y-5">

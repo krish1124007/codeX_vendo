@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
 import { createRFQAction } from "@/actions/rfq";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
@@ -50,8 +51,13 @@ export function CreateRfqForm({ vendors }: { vendors: Vendor[] }) {
       files.forEach((file) => formData.append("attachments", file));
 
       const res = await createRFQAction(formData);
-      if (res.error) setError(res.error);
-      else router.push("/rfqs");
+      if (res.error) {
+        setError(res.error);
+        toast.error(res.error);
+      } else {
+        toast.success(publish ? "RFQ created and sent to vendors" : "RFQ saved as draft");
+        router.push("/rfqs");
+      }
     });
   }
 

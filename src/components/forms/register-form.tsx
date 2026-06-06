@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useRef, useState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { Camera } from "lucide-react";
 import { registerAction, type RegisterState } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import Image from "next/image";
+import { toast } from "sonner";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -32,6 +33,12 @@ export function RegisterForm() {
       setPreview(URL.createObjectURL(file));
     }
   };
+
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(state.error);
+    }
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-4">
