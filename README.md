@@ -1,4 +1,4 @@
-﻿# VendorBridge
+# VendorBridge
 
 VendorBridge is a modern procurement and vendor management platform built with Next.js 16, React 19, TypeScript, Tailwind CSS 4, Prisma, and AI-assisted procurement chat.
 
@@ -41,8 +41,9 @@ npm install
 Create a `.env` file with:
 
 ```bash
-DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
-GROQ_API_KEY=your_groq_api_key
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
+AUTH_SECRET="change-me-in-production"
+GROQ_API_KEY="your_groq_api_key"
 ```
 
 ### 3. Generate the Prisma client
