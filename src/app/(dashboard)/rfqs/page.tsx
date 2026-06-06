@@ -7,11 +7,22 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { requirePermission, can } from "@/lib/auth/rbac";
 import { listRFQs } from "@/services/procurement";
+import { listVendors } from "@/services/vendors";
 import { formatDate } from "@/lib/utils/format";
 
 export default async function RFQsPage() {
   const user = await requirePermission("rfq:view");
-  const rfqs = await listRFQs();
+  let rfqs = await listRFQs();
+
+  if (user.role === "VENDOR") {
+    const allVendors = await listVendors();
+    const currentVendor = allVendors.find((v) => v.userId === user.id || v.email === user.email);
+    if (currentVendor) {
+      rfqs = rfqs.filter((rfq) => rfq.vendorIds.includes(currentVendor.id));
+    } else {
+      rfqs = [];
+    }
+  }
 
   return (
     <>

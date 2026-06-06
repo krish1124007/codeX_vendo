@@ -165,6 +165,11 @@ export function CreateRfqForm({ vendors }: { vendors: Vendor[] }) {
                   </Button>
                 </div>
                 <div className="space-y-2">
+                  <div className="grid grid-cols-12 gap-2 text-xs uppercase tracking-wider text-muted px-1">
+                    <div className="col-span-6">Item</div>
+                    <div className="col-span-2">Qty</div>
+                    <div className="col-span-3">Unit</div>
+                  </div>
                   {items.map((item, i) => (
                     <div key={i} className="grid grid-cols-12 gap-2">
                       <Input
