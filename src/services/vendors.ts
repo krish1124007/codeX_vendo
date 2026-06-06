@@ -67,6 +67,7 @@ export async function createVendor(input: {
   contactNumber?: string;
   city?: string;
   createdById?: string;
+  userId?: string;
 }): Promise<Vendor> {
   const vendor = await prisma.vendor.create({
     data: {
@@ -79,6 +80,7 @@ export async function createVendor(input: {
       rating: 0,
       status: "PENDING",
       createdById: input.createdById || null,
+      userId: input.userId || null,
     }
   });
   

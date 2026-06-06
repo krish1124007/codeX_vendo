@@ -89,11 +89,16 @@ export function AddVendorDialog() {
                   <Input id="contactNumber" name="contactNumber" placeholder="+91 90000 00000" />
                 </div>
               </div>
-              <div>
-                <Label htmlFor="city">City</Label>
-                <Input id="city" name="city" placeholder="Ahmedabad" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="city">City</Label>
+                  <Input id="city" name="city" placeholder="Ahmedabad" />
+                </div>
+                <div>
+                  <Label htmlFor="password">Login Password (Optional)</Label>
+                  <Input id="password" name="password" type="password" placeholder="••••••••" />
+                </div>
               </div>
-
               {state.error && (
                 <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
                   {state.error}

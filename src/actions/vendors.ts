@@ -19,9 +19,39 @@ export async function createVendorAction(
   const email = String(formData.get("email") ?? "").trim();
   const contactNumber = String(formData.get("contactNumber") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
 
   if (!name || !gstNumber || !category) {
     return { error: "Name, GST number and category are required." };
+  }
+
+  if (password && !email) {
+    return { error: "Email is required to create a vendor login account." };
+  }
+
+  const { prisma } = await import("@/lib/db/prisma");
+  let userId: string | undefined = undefined;
+
+  if (password && email) {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return { error: "An account with this email already exists." };
+    }
+    
+    const bcrypt = (await import("bcryptjs")).default;
+    const passwordHash = await bcrypt.hash(password, 10);
+    
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        name,
+        passwordHash,
+        role: "VENDOR",
+        phone: contactNumber || null,
+        status: "ACTIVE",
+      }
+    });
+    userId = newUser.id;
   }
 
   const vendor = await createVendor({
@@ -32,6 +62,7 @@ export async function createVendorAction(
     contactNumber: contactNumber || undefined,
     city: city || undefined,
     createdById: user.id,
+    userId,
   });
 
   await logActivity({
