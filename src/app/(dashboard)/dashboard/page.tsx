@@ -10,12 +10,11 @@ export default async function DashboardPage() {
   const user = await requireUser();
 
   switch (user.role) {
-    case "ADMIN":
-      return <AdminDashboard user={user} />;
     case "VENDOR":
       return <VendorDashboard user={user} />;
     case "MANAGER":
       return <ManagerDashboard user={user} />;
+    case "ADMIN":
     case "PROCUREMENT_OFFICER":
     default:
       return <ProcurementDashboard user={user} />;

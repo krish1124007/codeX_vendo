@@ -45,13 +45,7 @@ const ALL: Permission[] = [
 ];
 
 export const PERMISSIONS: Record<Role, Permission[]> = {
-  ADMIN: [
-    "dashboard:view",
-    "users:manage",
-    "vendor:view",
-    "vendor:manage",
-    "reports:view",
-  ],
+  ADMIN: [...ALL],
   PROCUREMENT_OFFICER: [
     "dashboard:view",
     "rfq:view",
