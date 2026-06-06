@@ -38,7 +38,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-The root route redirects to `/dashboard`.
+The root route now serves the public landing page and links to login and registration.
 
 ## Build and Production
 
@@ -64,12 +64,19 @@ npm start
 - `next` 16.2.7
 - `react` 19.2.4
 - `react-dom` 19.2.4
+- `framer-motion`
 - `prisma` / `@prisma/client`
 - `react-hook-form`
 - `zod`
 - `recharts`
 - `lucide-react`
 - `tailwindcss` (with PostCSS plugin)
+
+## Landing Page
+
+- `/` renders a modern public landing page with hero, navigation, features, about section, and footer
+- Uses React, Tailwind CSS, Lucide icons, and Framer Motion
+- Responsive mobile-first layout with sticky navbar and hamburger menu
 
 ## System Architecture
 
