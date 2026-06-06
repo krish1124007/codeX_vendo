@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { Camera } from "lucide-react";
 import { registerAction, type RegisterState } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import Image from "next/image";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -20,9 +22,43 @@ export function RegisterForm() {
     registerAction,
     {},
   );
+  
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    }
+  };
 
   return (
     <form action={formAction} className="space-y-4">
+      <div className="flex flex-col items-center mb-4">
+        <input 
+          type="file" 
+          name="photo" 
+          accept="image/*" 
+          className="hidden" 
+          ref={fileInputRef}
+          onChange={handlePhotoChange}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-dashed border-border bg-background text-muted transition-colors hover:bg-card-hover"
+          aria-label="Upload photo"
+        >
+          {preview ? (
+            <Image src={preview} alt="Preview" fill className="object-cover" />
+          ) : (
+            <Camera size={24} />
+          )}
+        </button>
+        <span className="mt-2 text-xs text-muted">Upload Photo (Optional)</span>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label htmlFor="firstName">First name</Label>
@@ -40,25 +76,30 @@ export function RegisterForm() {
           <Input id="email" name="email" type="email" placeholder="you@company.com" required />
         </div>
         <div>
-          <Label htmlFor="phone">Phone</Label>
-          <Input id="phone" name="phone" placeholder="+91 98XXXXXXXX" />
+          <Label htmlFor="password">Password</Label>
+          <Input id="password" name="password" type="password" placeholder="••••••••" required minLength={6} />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="role">Role</Label>
-          <Select id="role" name="role" defaultValue="PROCUREMENT_OFFICER">
-            <option value="ADMIN">Admin</option>
-            <option value="PROCUREMENT_OFFICER">Procurement Officer</option>
-            <option value="MANAGER">Manager</option>
-            <option value="VENDOR">Vendor</option>
-          </Select>
+          <Label htmlFor="phone">Phone</Label>
+          <Input id="phone" name="phone" placeholder="+91 98XXXXXXXX" />
         </div>
         <div>
           <Label htmlFor="country">Country</Label>
           <Input id="country" name="country" placeholder="India" defaultValue="India" />
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="role">Role</Label>
+        <Select id="role" name="role" defaultValue="PROCUREMENT_OFFICER">
+          <option value="ADMIN">Admin</option>
+          <option value="PROCUREMENT_OFFICER">Procurement Officer</option>
+          <option value="MANAGER">Manager</option>
+          <option value="VENDOR">Vendor</option>
+        </Select>
       </div>
 
       <div>

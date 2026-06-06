@@ -1,13 +1,23 @@
-import { db } from "@/lib/db/store";
+import { prisma } from "@/lib/db/prisma";
 
-/** KPI tiles for the dashboard (screen 3). */
 export async function getDashboardKpis() {
-  const activeRFQs = db.rfqs.filter(
-    (r) => r.status === "PUBLISHED" || r.status === "CLOSED",
-  ).length;
-  const pendingApprovals = db.approvals.filter((a) => a.status === "PENDING").length;
-  const poThisMonthSpend = db.purchaseOrders.reduce((s, p) => s + p.grandTotal, 0);
-  const overdueInvoices = db.invoices.filter((i) => i.status === "OVERDUE").length;
+  const activeRFQs = await prisma.rFQ.count({
+    where: { status: { in: ["PUBLISHED", "CLOSED"] } },
+  });
+  
+  const pendingApprovals = await prisma.approval.count({
+    where: { status: "PENDING" },
+  });
+  
+  const poSpendResult = await prisma.purchaseOrder.aggregate({
+    _sum: { grandTotal: true },
+  });
+  const poThisMonthSpend = poSpendResult._sum.grandTotal?.toNumber() || 0;
+  
+  const overdueInvoices = await prisma.invoice.count({
+    where: { status: "OVERDUE" },
+  });
+  
   return {
     activeRFQs: Math.max(activeRFQs, 12),
     pendingApprovals: Math.max(pendingApprovals, 5),
@@ -16,7 +26,6 @@ export async function getDashboardKpis() {
   };
 }
 
-/** Six-month spend trend (screen 11 + dashboard). */
 export async function getMonthlyTrend() {
   return [
     { month: "Dec", spend: 820000 },
@@ -28,11 +37,15 @@ export async function getMonthlyTrend() {
   ];
 }
 
-/** Report KPIs (screen 11). */
 export async function getReportSummary() {
   const totalSpend = 1240000;
-  const activeVendors = db.vendors.filter((v) => v.status === "ACTIVE").length;
-  const overdueInvoices = db.invoices.filter((i) => i.status === "OVERDUE").length;
+  const activeVendors = await prisma.vendor.count({
+    where: { status: "ACTIVE" },
+  });
+  const overdueInvoices = await prisma.invoice.count({
+    where: { status: "OVERDUE" },
+  });
+  
   return {
     totalSpend,
     activeVendors: Math.max(activeVendors, 28),

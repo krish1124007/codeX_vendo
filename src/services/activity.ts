@@ -1,4 +1,4 @@
-import { db, genId, nowISO } from "@/lib/db/store";
+import { prisma } from "@/lib/db/prisma";
 import type { ActivityLog, ActivityType } from "@/types";
 
 /**
@@ -14,17 +14,29 @@ export async function logActivity(input: {
   actorId?: string;
   actorName?: string;
 }): Promise<ActivityLog> {
-  const entry: ActivityLog = {
-    id: genId("act"),
-    createdAt: nowISO(),
-    ...input,
-  };
-  db.activity.unshift(entry);
-  return entry;
+  const entry = await prisma.activityLog.create({
+    data: {
+      type: input.type,
+      action: input.action,
+      description: input.description,
+      entityType: input.entityType || null,
+      entityId: input.entityId || null,
+      actorId: input.actorId || null,
+      actorName: input.actorName || null,
+    },
+  });
+  
+  // Cast Prisma's ActivityLog to our frontend type if needed
+  return entry as unknown as ActivityLog;
 }
 
 export async function listActivity(filter?: ActivityType | "ALL"): Promise<ActivityLog[]> {
-  const all = [...db.activity].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  if (!filter || filter === "ALL") return all;
-  return all.filter((a) => a.type === filter);
+  const where = (!filter || filter === "ALL") ? undefined : { type: filter };
+  
+  const logs = await prisma.activityLog.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+  });
+  
+  return logs as unknown as ActivityLog[];
 }

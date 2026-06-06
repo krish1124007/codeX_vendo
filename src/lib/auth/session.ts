@@ -1,25 +1,21 @@
 import { cookies } from "next/headers";
-import { db } from "@/lib/db/store";
+import { prisma } from "@/lib/db/prisma";
 import type { User } from "@/types";
+import bcrypt from "bcryptjs";
 
-/**
- * Lightweight cookie-based session for the demo. The cookie stores the user id.
- *
- * This is intentionally swappable: in production replace `getCurrentUser` /
- * `createSession` with NextAuth (JWT strategy) — the rest of the app only
- * depends on `getCurrentUser()` returning a `User`, so call sites don't change.
- *
- * Note: `cookies()` is async in this Next.js version and may only be mutated
- * from a Server Action or Route Handler.
- */
 const SESSION_COOKIE = "vb_session";
-const DEMO_PASSWORD = "vendorbridge";
 
 export async function getCurrentUser(): Promise<User | null> {
   const store = await cookies();
   const userId = store.get(SESSION_COOKIE)?.value;
   if (!userId) return null;
-  return db.users.find((u) => u.id === userId) ?? null;
+  
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return null;
+  
+  // Return the user cast to the expected type
+  // (In a real app, you might omit passwordHash from the type here)
+  return user as unknown as User;
 }
 
 export async function createSession(userId: string): Promise<void> {
@@ -37,13 +33,21 @@ export async function destroySession(): Promise<void> {
   store.delete(SESSION_COOKIE);
 }
 
-/** Verify credentials against the seeded users (demo password for all accounts). */
 export async function verifyCredentials(
   email: string,
   password: string,
 ): Promise<User | null> {
-  const user = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
   if (!user) return null;
-  if (password !== DEMO_PASSWORD) return null;
-  return user;
+  
+  const isValid = await bcrypt.compare(password, user.passwordHash);
+  if (!isValid) {
+    // Check if it's the demo password for backwards compatibility if needed,
+    // but we seeded with real bcrypt hashes, so we rely on bcrypt.
+    return null;
+  }
+  
+  return user as unknown as User;
 }

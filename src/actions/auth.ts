@@ -2,9 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { createSession, destroySession, verifyCredentials } from "@/lib/auth/session";
-import { db, genId, nowISO } from "@/lib/db/store";
+import { prisma } from "@/lib/db/prisma";
 import { logActivity } from "@/services/activity";
 import type { Role } from "@/types";
+import bcrypt from "bcryptjs";
+import { writeFileSync, mkdirSync } from "fs";
+import { join } from "path";
 
 export type LoginState = { error?: string };
 
@@ -31,7 +34,6 @@ export async function loginAction(
   redirect("/dashboard");
 }
 
-/** One-click demo sign-in by user id (used by the role shortcuts on the login screen). */
 export async function quickLoginAction(userId: string): Promise<void> {
   await createSession(userId);
   redirect("/dashboard");
@@ -46,30 +48,52 @@ export async function registerAction(
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
   const role = String(formData.get("role") ?? "PROCUREMENT_OFFICER") as Role;
   const phone = String(formData.get("phone") ?? "").trim();
   const country = String(formData.get("country") ?? "").trim();
 
-  if (!firstName || !email) {
-    return { error: "Name and email are required." };
+  if (!firstName || !email || !password) {
+    return { error: "Name, email, and password are required." };
   }
-  if (db.users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
     return { error: "An account with this email already exists." };
   }
 
-  const now = nowISO();
-  const user = {
-    id: genId("u"),
-    email,
-    name: `${firstName} ${lastName}`.trim(),
-    role,
-    phone: phone || undefined,
-    country: country || undefined,
-    status: "ACTIVE",
-    createdAt: now,
-    updatedAt: now,
-  };
-  db.users.push(user);
+  let avatarUrl: string | undefined = undefined;
+  const photo = formData.get("photo") as File | null;
+
+  if (photo && photo.size > 0) {
+    const bytes = await photo.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const uploadsDir = join(process.cwd(), "public", "uploads");
+    try {
+      mkdirSync(uploadsDir, { recursive: true });
+    } catch (e) {}
+
+    const fileName = `${Date.now()}-${photo.name.replace(/\s/g, "_")}`;
+    writeFileSync(join(uploadsDir, fileName), buffer);
+    avatarUrl = `/uploads/${fileName}`;
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const name = `${firstName} ${lastName}`.trim();
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      name,
+      passwordHash,
+      role,
+      phone: phone || null,
+      country: country || null,
+      avatarUrl,
+      status: "ACTIVE",
+    }
+  });
 
   await createSession(user.id);
   await logActivity({
