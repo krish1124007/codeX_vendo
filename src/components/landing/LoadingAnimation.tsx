@@ -12,7 +12,7 @@ export default function LoadingAnimation() {
             key={index}
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 0.9, repeat: Infinity, delay: index * 0.12 }}
-            className="block h-2.5 w-2.5 rounded-full bg-gradient-to-r from-white/80 to-slate-300/80"
+            className="block h-2.5 w-2.5 rounded-full bg-gradient-to-r from-primary/50 to-primary"
           />
         ))}
       </div>
