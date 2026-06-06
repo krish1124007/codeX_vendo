@@ -24,6 +24,8 @@ export function RegisterForm() {
     {},
   );
   
+  const [role, setRole] = useState("PROCUREMENT_OFFICER");
+  
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,13 +103,39 @@ export function RegisterForm() {
 
       <div>
         <Label htmlFor="role">Role</Label>
-        <Select id="role" name="role" defaultValue="PROCUREMENT_OFFICER">
+        <Select id="role" name="role" value={role} onChange={(e) => setRole(e.target.value)}>
           <option value="ADMIN">Admin</option>
           <option value="PROCUREMENT_OFFICER">Procurement Officer</option>
           <option value="MANAGER">Manager</option>
           <option value="VENDOR">Vendor</option>
         </Select>
       </div>
+
+      {role === "VENDOR" && (
+        <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
+          <p className="text-sm font-semibold text-foreground">Vendor Profile Details</p>
+          <div>
+            <Label htmlFor="companyName">Company name</Label>
+            <Input id="companyName" name="companyName" placeholder="TechCorp Supplies" required={role === "VENDOR"} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="gstNumber">GST number</Label>
+              <Input id="gstNumber" name="gstNumber" placeholder="GST123456789" required={role === "VENDOR"} />
+            </div>
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select id="category" name="category" defaultValue="IT Hardware">
+                <option value="IT Hardware">IT Hardware</option>
+                <option value="Furniture">Furniture</option>
+                <option value="Logistics">Logistics</option>
+                <option value="Stationery">Stationery</option>
+                <option value="Construction">Construction</option>
+              </Select>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <Label htmlFor="about">Additional information</Label>

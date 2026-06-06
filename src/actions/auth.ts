@@ -95,6 +95,36 @@ export async function registerAction(
     }
   });
 
+  if (role === "VENDOR") {
+    const companyName = String(formData.get("companyName") ?? "").trim();
+    const gstNumber = String(formData.get("gstNumber") ?? "").trim();
+    const category = String(formData.get("category") ?? "").trim();
+    
+    if (companyName && gstNumber && category) {
+      const vendor = await prisma.vendor.create({
+        data: {
+          name: companyName,
+          gstNumber,
+          category,
+          email,
+          contactNumber: phone || null,
+          userId: user.id,
+          status: "PENDING",
+        }
+      });
+      
+      await logActivity({
+        type: "VENDOR",
+        action: "Vendor self-registered",
+        description: `${companyName} registered and is pending approval`,
+        entityType: "VENDOR",
+        entityId: vendor.id,
+        actorId: user.id,
+        actorName: user.name,
+      });
+    }
+  }
+
   await createSession(user.id);
   await logActivity({
     type: "AUTH",
