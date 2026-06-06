@@ -79,7 +79,7 @@ export default async function CompareQuotationsPage({
                         key={q.id}
                         className={cn(
                           "border-b border-border px-4 py-3 text-left",
-                          isLowest && "bg-primary/10",
+                          isLowest && "bg-success/10",
                         )}
                       >
                         <div className="font-semibold text-foreground">
@@ -87,7 +87,7 @@ export default async function CompareQuotationsPage({
                         </div>
                         <div className="mt-0.5">
                           {isLowest ? (
-                            <span className="text-xs font-medium text-primary">Lowest price</span>
+                            <span className="text-xs font-medium text-success">Lowest price</span>
                           ) : (
                             <span className="text-xs text-muted">{q.quotationNumber}</span>
                           )}
@@ -106,7 +106,7 @@ export default async function CompareQuotationsPage({
                         key={q.id}
                         className={cn(
                           "px-4 py-3 font-medium",
-                          q.grandTotal === lowestTotal && "bg-primary/10",
+                          q.grandTotal === lowestTotal && "bg-success/10",
                         )}
                       >
                         {row.render(i)}
@@ -121,7 +121,7 @@ export default async function CompareQuotationsPage({
                     return (
                       <td
                         key={q.id}
-                        className={cn("px-4 py-4 align-top", isLowest && "bg-primary/10")}
+                        className={cn("px-4 py-4 align-top", isLowest && "bg-success/10")}
                       >
                         {q.status === "SELECTED" ? (
                           <StatusBadge status="SELECTED" />

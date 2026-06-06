@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
@@ -6,9 +7,19 @@ import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { requirePermission } from "@/lib/auth/rbac";
 import { listRFQs, listQuotations } from "@/services/procurement";
 
-export default async function QuotationsPage() {
+export default async function QuotationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   await requirePermission("rfq:view");
-  const [rfqs, quotations] = await Promise.all([listRFQs(), listQuotations()]);
+  const { status } = await searchParams;
+  const [allRfqs, quotations] = await Promise.all([listRFQs(), listQuotations()]);
+  
+  const rfqs = status && status !== "ALL"
+    ? allRfqs.filter((rfq) => rfq.status === status)
+    : allRfqs;
+
   const countByRfq = quotations.reduce<Record<string, number>>((acc, q) => {
     acc[q.rfqId] = (acc[q.rfqId] ?? 0) + 1;
     return acc;
@@ -16,7 +27,35 @@ export default async function QuotationsPage() {
 
   return (
     <>
-      <PageHeader title="Quotations" subtitle="Quotations received against your RFQs" />
+      <PageHeader 
+        title="Quotations" 
+        subtitle="Quotations received against your RFQs"
+        actions={
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted font-medium">Filter:</span>
+            <form className="flex items-center gap-2">
+              <select 
+                name="status"
+                defaultValue={status ?? "ALL"}
+                className="h-9 rounded-md border border-border bg-card px-3 py-1 text-sm shadow-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="DRAFT">Draft</option>
+                <option value="PUBLISHED">Published</option>
+                <option value="CLOSED">Closed</option>
+                <option value="AWARDED">Awarded</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+              <button 
+                type="submit" 
+                className="h-9 rounded-md bg-secondary px-3 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+              >
+                Apply
+              </button>
+            </form>
+          </div>
+        }
+      />
 
       <Card>
         <CardContent>
@@ -31,24 +70,32 @@ export default async function QuotationsPage() {
               </TR>
             </THead>
             <tbody>
-              {rfqs.map((rfq) => (
-                <TR key={rfq.id}>
-                  <TD className="font-medium">{rfq.title}</TD>
-                  <TD className="text-muted">{rfq.category}</TD>
-                  <TD className="text-muted">{countByRfq[rfq.id] ?? 0} received</TD>
-                  <TD>
-                    <StatusBadge status={rfq.status} />
-                  </TD>
-                  <TD className="text-right">
-                    <Link
-                      href={`/quotations/${rfq.id}/compare`}
-                      className="text-xs font-medium text-primary hover:underline"
-                    >
-                      Compare →
-                    </Link>
+              {rfqs.length === 0 ? (
+                <TR>
+                  <TD colSpan={5} className="py-8 text-center text-muted">
+                    No RFQs found for the selected filter.
                   </TD>
                 </TR>
-              ))}
+              ) : (
+                rfqs.map((rfq) => (
+                  <TR key={rfq.id}>
+                    <TD className="font-medium">{rfq.title}</TD>
+                    <TD className="text-muted">{rfq.category}</TD>
+                    <TD className="text-muted">{countByRfq[rfq.id] ?? 0} received</TD>
+                    <TD>
+                      <StatusBadge status={rfq.status} />
+                    </TD>
+                    <TD className="text-right">
+                      <Link
+                        href={`/quotations/${rfq.id}/compare`}
+                        className="text-xs font-medium text-primary hover:underline"
+                      >
+                        Compare →
+                      </Link>
+                    </TD>
+                  </TR>
+                ))
+              )}
             </tbody>
           </Table>
         </CardContent>
