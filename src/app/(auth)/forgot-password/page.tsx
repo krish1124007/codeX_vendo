@@ -2,6 +2,7 @@
 
 import { useTransition, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { forgotPasswordAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -18,6 +19,9 @@ export default function ForgotPasswordPage() {
     
     startTransition(async () => {
       const result = await forgotPasswordAction(email);
+      if (result.error) {
+        toast.error(result.error);
+      }
       setStatus(result);
     });
   };

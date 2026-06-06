@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { decideApprovalAction } from "@/actions/approvals";
@@ -14,6 +15,10 @@ export function ApprovalDecision({ approvalId }: { approvalId: string }) {
   function decide(decision: "APPROVED" | "REJECTED") {
     startTransition(async () => {
       const res = await decideApprovalAction({ approvalId, decision, remarks });
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
       if (res.poId) router.push(`/purchase-orders/${res.poId}`);
       else router.refresh();
     });

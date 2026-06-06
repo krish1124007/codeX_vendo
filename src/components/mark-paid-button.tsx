@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { markInvoicePaidAction } from "@/actions/invoices";
@@ -21,7 +22,11 @@ export function MarkPaidButton({
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          await markInvoicePaidAction(invoiceId);
+          const res = await markInvoicePaidAction(invoiceId);
+          if (res.error) {
+            toast.error(res.error);
+            return;
+          }
           router.refresh();
         })
       }
