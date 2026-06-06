@@ -18,4 +18,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Invoices", href: "/invoices", icon: "FileSpreadsheet", permission: "invoice:view" },
   { label: "Reports", href: "/reports", icon: "BarChart3", permission: "reports:view" },
   { label: "Activity", href: "/activity", icon: "Activity", permission: "activity:view" },
+  { label: "Users", href: "/users", icon: "Users", permission: "users:manage" },
 ];

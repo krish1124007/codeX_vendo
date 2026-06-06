@@ -23,7 +23,8 @@ export type Permission =
   | "invoice:view"
   | "invoice:manage"
   | "reports:view"
-  | "activity:view";
+  | "activity:view"
+  | "users:manage";
 
 const ALL: Permission[] = [
   "dashboard:view",
@@ -40,6 +41,7 @@ const ALL: Permission[] = [
   "invoice:manage",
   "reports:view",
   "activity:view",
+  "users:manage",
 ];
 
 export const PERMISSIONS: Record<Role, Permission[]> = {

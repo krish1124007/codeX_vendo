@@ -47,3 +47,25 @@ export async function createVendorAction(
   revalidatePath("/vendors");
   return { ok: true };
 }
+
+export async function updateVendorStatusAction(
+  vendorId: string,
+  status: "ACTIVE" | "BLOCKED" | "PENDING",
+) {
+  const user = await requirePermission("vendor:manage");
+
+  const { updateVendorStatus } = await import("@/services/vendors");
+  const vendor = await updateVendorStatus(vendorId, status);
+
+  await logActivity({
+    type: "VENDOR",
+    action: `Vendor ${status.toLowerCase()}`,
+    description: `${vendor.name} marked as ${status}`,
+    entityType: "VENDOR",
+    entityId: vendor.id,
+    actorId: user.id,
+    actorName: user.name,
+  });
+
+  revalidatePath("/vendors");
+}

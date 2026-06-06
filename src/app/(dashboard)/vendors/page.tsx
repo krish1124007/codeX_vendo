@@ -6,6 +6,7 @@ import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { AddVendorDialog } from "@/components/forms/add-vendor-dialog";
 import { requirePermission, can } from "@/lib/auth/rbac";
 import { listVendors, vendorCounts } from "@/services/vendors";
+import { updateVendorStatusAction } from "@/actions/vendors";
 import { cn } from "@/lib/utils/cn";
 import type { VendorStatus } from "@/types";
 
@@ -95,6 +96,7 @@ export default async function VendorsPage({
                 <TH>Contact</TH>
                 <TH>Rating</TH>
                 <TH>Status</TH>
+                {can(user.role, "vendor:manage") && <TH className="text-right">Actions</TH>}
               </TR>
             </THead>
             <tbody>
@@ -108,11 +110,29 @@ export default async function VendorsPage({
                   <TD>
                     <StatusBadge status={v.status} />
                   </TD>
+                  {can(user.role, "vendor:manage") && (
+                    <TD className="text-right">
+                      {v.status === "PENDING" && (
+                        <div className="flex justify-end gap-3">
+                          <form action={updateVendorStatusAction.bind(null, v.id, "ACTIVE")}>
+                            <button type="submit" className="text-xs font-medium text-primary hover:underline">
+                              Approve
+                            </button>
+                          </form>
+                          <form action={updateVendorStatusAction.bind(null, v.id, "BLOCKED")}>
+                            <button type="submit" className="text-xs font-medium text-danger hover:underline">
+                              Reject
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                    </TD>
+                  )}
                 </TR>
               ))}
               {vendors.length === 0 && (
                 <TR className="hover:bg-transparent">
-                  <TD colSpan={6} className="py-8 text-center text-muted">
+                  <TD colSpan={can(user.role, "vendor:manage") ? 7 : 6} className="py-8 text-center text-muted">
                     No vendors match your search.
                   </TD>
                 </TR>

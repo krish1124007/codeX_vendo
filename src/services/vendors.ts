@@ -84,3 +84,11 @@ export async function createVendor(input: {
   
   return vendor as unknown as Vendor;
 }
+
+export async function updateVendorStatus(id: string, status: VendorStatus): Promise<Vendor> {
+  const vendor = await prisma.vendor.update({
+    where: { id },
+    data: { status },
+  });
+  return vendor as unknown as Vendor;
+}

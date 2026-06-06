@@ -31,9 +31,13 @@ export default async function ReportsPage() {
         title="Reports & analytics"
         subtitle="Procurement insights — May 2025"
         actions={
-          <Button size="sm" variant="secondary">
-            <Icon name="Download" size={16} /> Export
-          </Button>
+          <a
+            href="/api/export"
+            download
+            className="inline-flex h-8 select-none items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground shadow-xs transition-all duration-150 hover:border-border-strong hover:bg-card-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
+          >
+            <Icon name="Download" size={16} className="mr-2" /> Export CSV
+          </a>
         }
       />
 

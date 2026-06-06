@@ -1,0 +1,84 @@
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Table, TD, TH, THead, TR } from "@/components/ui/table";
+import { requirePermission } from "@/lib/auth/rbac";
+import { listUsers } from "@/services/users";
+import { formatDate } from "@/lib/utils/format";
+import { updateUserRoleAction } from "@/actions/users";
+import { Select } from "@/components/ui/input";
+
+export default async function UsersPage() {
+  const currentUser = await requirePermission("users:manage");
+  const users = await listUsers();
+
+  const roles = ["ADMIN", "MANAGER", "PROCUREMENT_OFFICER", "VENDOR"];
+
+  return (
+    <>
+      <PageHeader title="Users" subtitle="Manage system users and access roles" />
+      <Card>
+        <CardContent>
+          <Table>
+            <THead>
+              <TR className="hover:bg-transparent">
+                <TH>Name</TH>
+                <TH>Email</TH>
+                <TH>Role</TH>
+                <TH>Joined</TH>
+                <TH className="text-right">Actions</TH>
+              </TR>
+            </THead>
+            <tbody>
+              {users.map((u) => (
+                <TR key={u.id}>
+                  <TD className="font-medium">
+                    <div className="flex items-center gap-3">
+                      {u.avatarUrl ? (
+                        <img src={u.avatarUrl} alt={u.name} className="h-8 w-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                          {u.name.charAt(0)}
+                        </div>
+                      )}
+                      {u.name}
+                      {u.id === currentUser.id && (
+                        <span className="rounded bg-muted/10 px-1.5 py-0.5 text-[10px] font-medium text-muted">YOU</span>
+                      )}
+                    </div>
+                  </TD>
+                  <TD className="text-muted">{u.email}</TD>
+                  <TD>
+                    <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-muted shadow-xs">
+                      {u.role.replace("_", " ")}
+                    </span>
+                  </TD>
+                  <TD className="text-muted">{formatDate(u.createdAt)}</TD>
+                  <TD className="text-right">
+                    {u.id !== currentUser.id && (
+                      <form action={async (formData: FormData) => {
+                        "use server";
+                        const newRole = formData.get("role") as any;
+                        await updateUserRoleAction(u.id, newRole);
+                      }}>
+                        <select 
+                          name="role" 
+                          defaultValue={u.role}
+                          onChange={(e) => e.target.form?.requestSubmit()}
+                          className="rounded-lg border border-border bg-background px-2 py-1 text-xs focus:border-primary/60 focus:outline-none"
+                        >
+                          {roles.map(r => (
+                            <option key={r} value={r}>{r.replace("_", " ")}</option>
+                          ))}
+                        </select>
+                      </form>
+                    )}
+                  </TD>
+                </TR>
+              ))}
+            </tbody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
+  );
+}

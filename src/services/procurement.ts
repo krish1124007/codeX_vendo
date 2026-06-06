@@ -36,6 +36,7 @@ export async function createRFQ(input: {
   deadline: string;
   vendorIds: string[];
   items: { name: string; quantity: number; unit: string }[];
+  attachments?: string[];
   publish: boolean;
   createdById: string;
   actorName?: string;
@@ -50,6 +51,7 @@ export async function createRFQ(input: {
       description: input.description,
       deadline: new Date(input.deadline),
       status: input.publish ? "PUBLISHED" : "DRAFT",
+      attachments: input.attachments || [],
       createdById: input.createdById,
       items: {
         create: input.items.map(it => ({

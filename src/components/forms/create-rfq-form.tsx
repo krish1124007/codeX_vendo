@@ -27,6 +27,7 @@ export function CreateRfqForm({ vendors }: { vendors: Vendor[] }) {
   const [deadline, setDeadline] = useState("");
   const [items, setItems] = useState<Item[]>([{ name: "", quantity: 1, unit: "NOS" }]);
   const [vendorIds, setVendorIds] = useState<string[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
 
   const updateItem = (i: number, patch: Partial<Item>) =>
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -38,15 +39,17 @@ export function CreateRfqForm({ vendors }: { vendors: Vendor[] }) {
   function submit(publish: boolean) {
     setError(null);
     startTransition(async () => {
-      const res = await createRFQAction({
-        title,
-        category,
-        description,
-        deadline,
-        vendorIds,
-        items: items.filter((i) => i.name.trim()),
-        publish,
-      });
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("category", category);
+      formData.append("description", description);
+      formData.append("deadline", deadline);
+      formData.append("publish", String(publish));
+      formData.append("vendorIds", JSON.stringify(vendorIds));
+      formData.append("items", JSON.stringify(items.filter((i) => i.name.trim())));
+      files.forEach((file) => formData.append("attachments", file));
+
+      const res = await createRFQAction(formData);
       if (res.error) setError(res.error);
       else router.push("/rfqs");
     });
@@ -122,6 +125,32 @@ export function CreateRfqForm({ vendors }: { vendors: Vendor[] }) {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Ergonomic chairs and standing desks for 3rd floor"
                 />
+              </div>
+              <div>
+                <Label htmlFor="attachments">Attachments (Optional)</Label>
+                <Input
+                  id="attachments"
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setFiles(Array.from(e.target.files));
+                    }
+                  }}
+                  className="mt-1 block w-full text-sm text-muted
+                    file:mr-4 file:rounded-full file:border-0
+                    file:bg-primary/10 file:px-4
+                    file:py-2 file:text-sm
+                    file:font-semibold file:text-primary
+                    hover:file:bg-primary/20"
+                />
+                {files.length > 0 && (
+                  <ul className="mt-2 text-xs text-muted">
+                    {files.map((f, i) => (
+                      <li key={i}>• {f.name}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </>
           )}

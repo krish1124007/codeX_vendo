@@ -138,4 +138,39 @@
       animation: none !important;
     }
   }
+
+  @media print {
+    body {
+      background-color: white !important;
+      color: black !important;
+    }
+    
+    /* Hide Next.js dev overlay errors if any */
+    nextjs-portal {
+      display: none !important;
+    }
+    
+    /* Hide topbar and sidebar in print view */
+    header, aside, .sidebar {
+      display: none !important;
+    }
+    
+    main {
+      padding: 0 !important;
+      margin: 0 !important;
+      background: white !important;
+    }
+
+    .print\:hidden {
+      display: none !important;
+    }
+    
+    .print\:shadow-none {
+      box-shadow: none !important;
+    }
+    
+    .print\:border-none {
+      border: none !important;
+    }
+  }
 }

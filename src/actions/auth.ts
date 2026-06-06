@@ -110,3 +110,28 @@ export async function logoutAction(): Promise<void> {
   await destroySession();
   redirect("/login");
 }
+
+export async function forgotPasswordAction(email: string): Promise<{ ok?: boolean; error?: string }> {
+  if (!email) return { error: "Email is required" };
+  
+  const existing = await prisma.user.findUnique({ where: { email } });
+  
+  if (existing) {
+    // MOCK EMAIL DISPATCH
+    console.log(`[MOCK EMAIL] Password reset link sent to ${email}`);
+    
+    await logActivity({
+      type: "AUTH",
+      action: "Password reset requested",
+      description: `Password reset requested for ${email}`,
+      actorId: existing.id,
+      actorName: existing.name,
+    });
+  }
+
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Always return OK to prevent email enumeration
+  return { ok: true };
+}
