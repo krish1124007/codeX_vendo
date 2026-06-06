@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+/*
+  VendorBridge — Premium black & white (light) ERP design system.
+  Depth comes from an off-white canvas + pure-white elevated cards + soft shadows.
+  Tokens are exposed to Tailwind v4 via @theme so they generate matching utilities
+  (bg-card, text-muted, border-border, shadow-card, animate-fade-up, …).
+*/
+@theme {
+  --color-background: #f6f7f9;
+  --color-sidebar: #ffffff;
+  --color-card: #ffffff;
+  --color-card-hover: #f3f4f6;
+  --color-border: #e8e9ed;
+  --color-border-strong: #d6d8df;
+
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft: #eff6ff;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-info: #0ea5e9;
+  --color-accent-teal: #0d9488;
+  --color-accent-sky: #0ea5e9;
+  --color-accent-emerald: #10b981;
+  --color-accent-amber: #f59e0b;
+
+  --color-foreground: #0a0a0a;
+  --color-muted: #6b7280;
+  --color-faint: #9ca3af;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-card: 1rem;
+
+  /* Soft elevation scale */
+  --shadow-xs: 0 1px 2px 0 rgb(16 17 22 / 0.04);
+  --shadow-card: 0 1px 2px rgb(16 17 22 / 0.04), 0 1px 3px rgb(16 17 22 / 0.06);
+  --shadow-card-hover: 0 6px 16px rgb(16 17 22 / 0.08), 0 2px 6px rgb(16 17 22 / 0.05);
+  --shadow-pop: 0 16px 48px rgb(16 17 22 / 0.16), 0 4px 12px rgb(16 17 22 / 0.08);
+
+  /* Motion */
+  --animate-fade-up: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.4s ease both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  /* Force light rendering for native controls (date pickers, selects, checkboxes, scrollbars). */
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.011em;
+  }
+
+  ::selection {
+    background-color: #2563eb;
+    color: #ffffff;
+  }
+
+  /* Slim light scrollbar */
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d8dade;
+    border: 2px solid var(--color-background);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b9bcc4;
+  }
+}
+
+@layer utilities {
+  /* Staggered entrance helpers */
+  .stagger > * {
+    animation: var(--animate-fade-up);
+  }
+  .stagger > *:nth-child(2) {
+    animation-delay: 0.05s;
+  }
+  .stagger > *:nth-child(3) {
+    animation-delay: 0.1s;
+  }
+  .stagger > *:nth-child(4) {
+    animation-delay: 0.15s;
+  }
+  .stagger > *:nth-child(5) {
+    animation-delay: 0.2s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stagger > *,
+    .animate-fade-up,
+    .animate-fade-in {
+      animation: none !important;
+    }
+  }
+}

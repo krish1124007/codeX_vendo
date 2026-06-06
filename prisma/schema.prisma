@@ -1,0 +1,374 @@
+// VendorBridge — Procurement & Vendor Management ERP
+// Prisma schema (PostgreSQL). Generated for the data model; the running app
+// currently uses an in-memory store shaped identically (src/lib/db/store.ts),
+// so swapping to a live Postgres database is a drop-in change.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  PROCUREMENT_OFFICER
+  MANAGER
+  VENDOR
+}
+
+enum VendorStatus {
+  ACTIVE
+  PENDING
+  BLOCKED
+}
+
+enum RFQStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  AWARDED
+  CANCELLED
+}
+
+enum RFQVendorStatus {
+  INVITED
+  SUBMITTED
+  DECLINED
+}
+
+enum QuotationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  SELECTED
+  REJECTED
+}
+
+enum ApprovalLevel {
+  L1
+  L2
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum POStatus {
+  DRAFT
+  ISSUED
+  ACKNOWLEDGED
+  COMPLETED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING_PAYMENT
+  PAID
+  OVERDUE
+}
+
+enum ActivityType {
+  AUTH
+  VENDOR
+  RFQ
+  QUOTATION
+  APPROVAL
+  PO
+  INVOICE
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  DANGER
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Identity & RBAC
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(PROCUREMENT_OFFICER)
+  phone        String?
+  country      String?
+  avatarUrl    String?
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vendorProfile  Vendor?         @relation("VendorAccount")
+  createdRFQs    RFQ[]           @relation("RFQCreatedBy")
+  createdPOs     PurchaseOrder[] @relation("POCreatedBy")
+  approvals      Approval[]      @relation("ApprovalApprover")
+  createdVendors Vendor[]        @relation("VendorCreatedBy")
+  notifications  Notification[]
+
+  @@index([role])
+}
+
+model Vendor {
+  id            String       @id @default(cuid())
+  name          String
+  gstNumber     String       @unique
+  category      String
+  email         String?
+  contactNumber String?
+  address       String?
+  city          String?
+  rating        Float        @default(0)
+  status        VendorStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Optional linked login account for the vendor user
+  userId String? @unique
+  user   User?   @relation("VendorAccount", fields: [userId], references: [id])
+
+  createdById String?
+  createdBy   User?   @relation("VendorCreatedBy", fields: [createdById], references: [id])
+
+  rfqVendors      RFQVendor[]
+  quotations      Quotation[]
+  purchaseOrders  PurchaseOrder[]
+  invoices        Invoice[]
+  approvals       Approval[]
+
+  @@index([status])
+  @@index([category])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RFQ
+// ─────────────────────────────────────────────────────────────────────────────
+
+model RFQ {
+  id          String    @id @default(cuid())
+  rfqNumber   String    @unique
+  title       String
+  category    String
+  description String?
+  deadline    DateTime
+  attachments String[]  @default([])
+  status      RFQStatus @default(DRAFT)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdById String
+  createdBy   User   @relation("RFQCreatedBy", fields: [createdById], references: [id])
+
+  items          RFQItem[]
+  vendors        RFQVendor[]
+  quotations     Quotation[]
+  approvals      Approval[]
+  purchaseOrders PurchaseOrder[]
+
+  @@index([status])
+}
+
+model RFQItem {
+  id        String   @id @default(cuid())
+  rfqId     String
+  rfq       RFQ      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  name      String
+  quantity  Int
+  unit      String   @default("NOS")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RFQVendor {
+  id        String          @id @default(cuid())
+  rfqId     String
+  rfq       RFQ             @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    Vendor          @relation(fields: [vendorId], references: [id])
+  status    RFQVendorStatus @default(INVITED)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([rfqId, vendorId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Quotation
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Quotation {
+  id              String          @id @default(cuid())
+  quotationNumber String          @unique
+  rfqId           String
+  rfq             RFQ             @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendorId        String
+  vendor          Vendor          @relation(fields: [vendorId], references: [id])
+  subtotal        Decimal         @db.Decimal(12, 2)
+  taxRate         Float           @default(18)
+  taxAmount       Decimal         @db.Decimal(12, 2)
+  grandTotal      Decimal         @db.Decimal(12, 2)
+  deliveryDays    Int             @default(0)
+  paymentTerms    String?
+  notes           String?
+  status          QuotationStatus @default(SUBMITTED)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  items     QuotationItem[]
+  approvals Approval[]
+
+  @@unique([rfqId, vendorId])
+  @@index([status])
+}
+
+model QuotationItem {
+  id          String    @id @default(cuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  name        String
+  quantity    Int
+  unitPrice   Decimal   @db.Decimal(12, 2)
+  total       Decimal   @db.Decimal(12, 2)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Approval workflow
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Approval {
+  id          String         @id @default(cuid())
+  rfqId       String
+  rfq         RFQ            @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  quotationId String
+  quotation   Quotation      @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  vendorId    String
+  vendor      Vendor         @relation(fields: [vendorId], references: [id])
+  level       ApprovalLevel  @default(L1)
+  status      ApprovalStatus @default(PENDING)
+  remarks     String?
+  approverId  String?
+  approver    User?          @relation("ApprovalApprover", fields: [approverId], references: [id])
+  decidedAt   DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Purchase Order & Invoice
+// ─────────────────────────────────────────────────────────────────────────────
+
+model PurchaseOrder {
+  id          String   @id @default(cuid())
+  poNumber    String   @unique
+  rfqId       String?
+  rfq         RFQ?     @relation(fields: [rfqId], references: [id])
+  quotationId String?  @unique
+  vendorId    String
+  vendor      Vendor   @relation(fields: [vendorId], references: [id])
+  subtotal    Decimal  @db.Decimal(12, 2)
+  cgst        Decimal  @db.Decimal(12, 2)
+  sgst        Decimal  @db.Decimal(12, 2)
+  grandTotal  Decimal  @db.Decimal(12, 2)
+  poDate      DateTime @default(now())
+  status      POStatus @default(ISSUED)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById String?
+  createdBy   User?   @relation("POCreatedBy", fields: [createdById], references: [id])
+
+  items   PurchaseOrderItem[]
+  invoice Invoice?
+
+  @@index([status])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  name            String
+  quantity        Int
+  unitPrice       Decimal       @db.Decimal(12, 2)
+  total           Decimal       @db.Decimal(12, 2)
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+  purchaseOrderId String        @unique
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  vendorId        String
+  vendor          Vendor        @relation(fields: [vendorId], references: [id])
+  billToName      String
+  billToAddress   String?
+  billToGstin     String?
+  invoiceDate     DateTime      @default(now())
+  dueDate         DateTime
+  subtotal        Decimal       @db.Decimal(12, 2)
+  cgst            Decimal       @db.Decimal(12, 2)
+  sgst            Decimal       @db.Decimal(12, 2)
+  grandTotal      Decimal       @db.Decimal(12, 2)
+  status          InvoiceStatus @default(PENDING_PAYMENT)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items InvoiceItem[]
+
+  @@index([status])
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  name      String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(12, 2)
+  total     Decimal @db.Decimal(12, 2)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audit trail (immutable — write-once, no updatedAt, no soft delete) & alerts
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  action      String
+  description String
+  entityType  String?
+  entityId    String?
+  actorId     String?
+  actorName   String?
+  createdAt   DateTime     @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType @default(INFO)
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId, read])
+}
