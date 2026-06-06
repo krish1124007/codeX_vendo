@@ -15,6 +15,8 @@ import { listActivity } from "@/services/activity";
 import { getVendorMap } from "@/services/vendors";
 import { formatCompactINR, formatCurrency, formatDate } from "@/lib/utils/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const [kpis, trend, pos, invoices, vendors, activity] = await Promise.all([

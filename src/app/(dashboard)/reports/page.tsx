@@ -14,6 +14,8 @@ import {
 } from "@/services/analytics";
 import { formatCompactINR, formatCurrency } from "@/lib/utils/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function ReportsPage() {
   await requirePermission("reports:view");
   const [summary, categories, topVendors, trend] = await Promise.all([
@@ -23,13 +25,14 @@ export default async function ReportsPage() {
     getMonthlyTrend(),
   ]);
 
-  const maxCategory = Math.max(...categories.map((c) => c.amount));
+  const maxCategory = categories.length ? Math.max(...categories.map((c) => c.amount)) : 1;
+  const currentMonthYear = new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
   return (
     <>
       <PageHeader
         title="Reports & analytics"
-        subtitle="Procurement insights — May 2025"
+        subtitle={`Procurement insights — ${currentMonthYear}`}
         actions={
           <a
             href="/api/export"
