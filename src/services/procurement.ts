@@ -377,8 +377,10 @@ export async function decideApproval(input: {
 
 // ── Purchase Orders & Invoices ───────────────────────────────────────────────
 
-export async function listPurchaseOrders(): Promise<PurchaseOrder[]> {
+export async function listPurchaseOrders(vendorId?: string): Promise<PurchaseOrder[]> {
+  const where = vendorId ? { vendorId } : {};
   const pos = await prisma.purchaseOrder.findMany({
+    where,
     orderBy: { poDate: "desc" },
     include: { items: true },
   });
@@ -492,8 +494,10 @@ export async function generatePurchaseOrder(input: {
   return po as unknown as PurchaseOrder;
 }
 
-export async function listInvoices(): Promise<Invoice[]> {
+export async function listInvoices(vendorId?: string): Promise<Invoice[]> {
+  const where = vendorId ? { vendorId } : {};
   const invoices = await prisma.invoice.findMany({
+    where,
     orderBy: { invoiceDate: "desc" },
     include: { items: true },
   });

@@ -68,6 +68,7 @@ export interface Vendor {
   city?: string;
   rating: number;
   status: VendorStatus;
+  userId?: string;
   createdById?: string;
   createdAt: string;
   updatedAt: string;

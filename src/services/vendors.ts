@@ -35,6 +35,18 @@ export async function getVendor(id: string): Promise<Vendor | undefined> {
   return vendor ? (vendor as unknown as Vendor) : undefined;
 }
 
+export async function getVendorByUserIdOrEmail(userId: string, email: string): Promise<Vendor | undefined> {
+  const vendor = await prisma.vendor.findFirst({
+    where: {
+      OR: [
+        { userId },
+        { email }
+      ]
+    }
+  });
+  return vendor ? (vendor as unknown as Vendor) : undefined;
+}
+
 export async function getVendorMap(): Promise<Map<string, Vendor>> {
   const vendors = await prisma.vendor.findMany();
   return new Map(vendors.map((v: any) => [v.id, v as unknown as Vendor]));

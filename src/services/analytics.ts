@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 
-export async function getDashboardKpis() {
+export async function getProcurementDashboardKpis() {
   const activeRFQs = await prisma.rFQ.count({
     where: { status: { in: ["PUBLISHED", "CLOSED"] } },
   });
@@ -23,6 +23,69 @@ export async function getDashboardKpis() {
     pendingApprovals,
     poSpend: poThisMonthSpend,
     overdueInvoices,
+  };
+}
+
+export async function getAdminDashboardKpis() {
+  const totalUsers = await prisma.user.count();
+  const totalVendors = await prisma.vendor.count();
+  const pendingVendors = await prisma.vendor.count({ where: { status: "PENDING" } });
+  const totalActivity = await prisma.activityLog.count();
+  
+  return {
+    totalUsers,
+    totalVendors,
+    pendingVendors,
+    totalActivity,
+  };
+}
+
+export async function getManagerDashboardKpis() {
+  const poSpendResult = await prisma.purchaseOrder.aggregate({
+    _sum: { grandTotal: true },
+  });
+  const totalPoSpend = poSpendResult._sum.grandTotal?.toNumber() || 0;
+  
+  const pendingL2Approvals = await prisma.approval.count({
+    where: { status: "PENDING", level: "L2" },
+  });
+  
+  const overdueInvoices = await prisma.invoice.count({
+    where: { status: "OVERDUE" },
+  });
+  
+  const totalActiveVendors = await prisma.vendor.count({ where: { status: "ACTIVE" }});
+  
+  return {
+    totalPoSpend,
+    pendingL2Approvals,
+    overdueInvoices,
+    totalActiveVendors,
+  };
+}
+
+export async function getVendorDashboardKpis(vendorId: string) {
+  const invitedRFQs = await prisma.rFQVendor.count({
+    where: { vendorId, status: "INVITED" },
+  });
+  
+  const activeQuotations = await prisma.quotation.count({
+    where: { vendorId, status: { in: ["SUBMITTED", "UNDER_REVIEW"] } },
+  });
+  
+  const awardedPOs = await prisma.purchaseOrder.count({
+    where: { vendorId, status: { in: ["ISSUED", "ACKNOWLEDGED"] } },
+  });
+  
+  const pendingInvoices = await prisma.invoice.count({
+    where: { vendorId, status: "PENDING_PAYMENT" },
+  });
+  
+  return {
+    invitedRFQs,
+    activeQuotations,
+    awardedPOs,
+    pendingInvoices,
   };
 }
 
