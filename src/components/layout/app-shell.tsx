@@ -7,6 +7,7 @@ import type { NavItem } from "@/components/layout/nav";
 import type { User } from "@/types";
 
 import type { Notification } from "@prisma/client";
+import { Chatbot } from "@/components/chat/chatbot";
 
 /**
  * Owns sidebar visibility:
@@ -55,6 +56,9 @@ export function AppShell({
           <div className="animate-fade-in mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>
+      {["ADMIN", "MANAGER", "PROCUREMENT_OFFICER"].includes(user.role) && (
+        <Chatbot />
+      )}
     </div>
   );
 }
