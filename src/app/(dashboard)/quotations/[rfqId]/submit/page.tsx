@@ -18,13 +18,14 @@ export default async function SubmitQuotationPage({
 
   const allVendors = await listVendors();
   const assigned = allVendors.filter((v) => rfq.vendorIds.includes(v.id));
-  const vendors = assigned.length ? assigned : allVendors.filter((v) => v.status === "ACTIVE");
+  let vendors = assigned.length ? assigned : allVendors.filter((v) => v.status === "ACTIVE");
 
   // Determine if the current user is a vendor and has an existing quotation
   let existingQuotation;
   if (user.role === "VENDOR") {
     const currentVendor = allVendors.find(v => v.userId === user.id || v.email === user.email);
     if (currentVendor) {
+      vendors = [currentVendor];
       existingQuotation = await getQuotationByRfqAndVendor(rfqId, currentVendor.id);
     }
   }
