@@ -9,9 +9,11 @@ import { Input, Label } from "@/components/ui/input";
 import { toast } from "sonner";
 
 const DEMO_ACCOUNTS = [
-  { id: "u_officer", label: "Procurement Officer" },
-  { id: "u_rahul", label: "Manager" },
-  { id: "u_admin", label: "Admin" },
+  { email: "admin@vendorbridge.io", label: "Admin" },
+  { email: "manager@vendorbridge.io", label: "Manager" },
+  { email: "officer@vendorbridge.io", label: "Procurement Mgr" },
+  { email: "sales@globalit.io", label: "Global IT Solutions" },
+  { email: "vendor@vendorbridge.io", label: "TechCorp Supplies" },
 ];
 
 function SubmitButton() {
@@ -83,10 +85,10 @@ export function LoginForm() {
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {DEMO_ACCOUNTS.map((acct) => (
-          <form key={acct.id} action={quickLoginAction.bind(null, acct.id)}>
-            <Button type="submit" variant="secondary" size="sm" className="w-full">
+          <form key={acct.email} action={quickLoginAction.bind(null, acct.email)}>
+            <Button type="submit" variant="secondary" size="sm" className="w-full text-xs">
               {acct.label}
             </Button>
           </form>

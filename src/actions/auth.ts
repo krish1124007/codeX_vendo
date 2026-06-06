@@ -39,8 +39,17 @@ export async function loginAction(
   redirect("/dashboard");
 }
 
-export async function quickLoginAction(userId: string): Promise<void> {
-  await createSession(userId);
+export async function quickLoginAction(email: string): Promise<LoginState | void> {
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return { error: `Account with email ${email} not found` };
+    }
+    await createSession(user.id);
+  } catch (error: any) {
+    if (error.message === "NEXT_REDIRECT") throw error;
+    return { error: error.message };
+  }
   redirect("/dashboard");
 }
 

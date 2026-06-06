@@ -1,67 +1,86 @@
 import 'dotenv/config';
-import bcrypt from 'bcryptjs';
 import { prisma } from '../src/lib/db/prisma';
+import bcrypt from 'bcryptjs';
 
 async function main() {
+  console.log("Seeding database...");
   const passwordHash = await bcrypt.hash("vendorbridge", 10);
-  
-  await prisma.user.upsert({
-    where: { email: 'admin@vendorbridge.io' },
+
+  // Recreate default users
+  const users = [
+    { email: 'admin@vendorbridge.io', name: 'System Admin', role: 'ADMIN' as const },
+    { email: 'officer@vendorbridge.io', name: 'Procurement Officer', role: 'PROCUREMENT_OFFICER' as const },
+    { email: 'manager@vendorbridge.io', name: 'Approving Manager', role: 'MANAGER' as const },
+  ];
+
+  for (const u of users) {
+    await prisma.user.upsert({
+      where: { email: u.email },
+      update: {},
+      create: {
+        email: u.email,
+        name: u.name,
+        passwordHash,
+        role: u.role,
+        status: 'ACTIVE',
+      }
+    });
+  }
+
+  // Vendors
+  const vendorUser1 = await prisma.user.upsert({
+    where: { email: 'vendor@vendorbridge.io' },
     update: {},
     create: {
-      email: 'admin@vendorbridge.io',
-      name: 'Aarav Kapoor',
+      email: 'vendor@vendorbridge.io',
+      name: 'Vendor One',
       passwordHash,
-      role: 'ADMIN',
-      phone: '+91 98200 10001',
-      country: 'India',
+      role: 'VENDOR',
       status: 'ACTIVE',
-    },
+    }
   });
 
-  await prisma.user.upsert({
-    where: { email: 'officer@vendorbridge.io' },
+  await prisma.vendor.upsert({
+    where: { gstNumber: 'GSTIN111111111' },
     update: {},
     create: {
-      email: 'officer@vendorbridge.io',
-      name: 'Procurement Officer',
-      passwordHash,
-      role: 'PROCUREMENT_OFFICER',
-      phone: '+91 98200 10002',
-      country: 'India',
+      name: 'TechCorp Supplies',
+      email: 'vendor@vendorbridge.io',
+      category: 'IT Hardware',
+      gstNumber: 'GSTIN111111111',
       status: 'ACTIVE',
-    },
+      rating: 4.5,
+      userId: vendorUser1.id
+    }
   });
 
-  await prisma.user.upsert({
-    where: { email: 'rahul@vendorbridge.io' },
+  const vendorUser2 = await prisma.user.upsert({
+    where: { email: 'vendor2@vendorbridge.io' },
     update: {},
     create: {
-      email: 'rahul@vendorbridge.io',
-      name: 'Rahul Mehta',
+      email: 'vendor2@vendorbridge.io',
+      name: 'Vendor Two',
       passwordHash,
-      role: 'MANAGER',
-      phone: '+91 98200 10003',
-      country: 'India',
+      role: 'VENDOR',
       status: 'ACTIVE',
-    },
+    }
   });
 
-  await prisma.user.upsert({
-    where: { email: 'priya@vendorbridge.io' },
+  await prisma.vendor.upsert({
+    where: { gstNumber: 'GSTIN222222222' },
     update: {},
     create: {
-      email: 'priya@vendorbridge.io',
-      name: 'Priya Shah',
-      passwordHash,
-      role: 'MANAGER',
-      phone: '+91 98200 10004',
-      country: 'India',
+      name: 'Office Essentials Ltd',
+      email: 'vendor2@vendorbridge.io',
+      category: 'Furniture',
+      gstNumber: 'GSTIN222222222',
       status: 'ACTIVE',
-    },
+      rating: 4.8,
+      userId: vendorUser2.id
+    }
   });
 
-  console.log("Seeding complete!");
+  console.log("Database seeded successfully!");
 }
 
 main()

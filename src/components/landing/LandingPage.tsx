@@ -18,7 +18,6 @@ export default function LandingPage() {
         <div className="absolute right-12 top-[22rem] -z-10 h-[280px] w-[280px] rounded-full bg-white/10 blur-3xl" />
 
         <main className="mx-auto max-w-7xl px-6 pb-24 pt-20 sm:pb-32 lg:px-8">
-          <LoadingAnimation />
           <LandingHero />
         </main>
       </div>

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export default function LoadingAnimation() {
   return (
     <div className="mb-10 flex items-center justify-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm">
-      <span className="font-medium text-slate-700">Live procurement sync</span>
+      <span className="font-medium text-slate-700" style={{ display: "none" }}>Live procurement sync</span>
       <div className="flex items-center gap-1">
         {[0, 1, 2].map((index) => (
           <motion.span
