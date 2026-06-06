@@ -45,7 +45,13 @@ const ALL: Permission[] = [
 ];
 
 export const PERMISSIONS: Record<Role, Permission[]> = {
-  ADMIN: ALL,
+  ADMIN: [
+    "dashboard:view",
+    "users:manage",
+    "vendor:view",
+    "vendor:manage",
+    "reports:view",
+  ],
   PROCUREMENT_OFFICER: [
     "dashboard:view",
     "rfq:view",
@@ -54,20 +60,19 @@ export const PERMISSIONS: Record<Role, Permission[]> = {
     "po:view",
     "invoice:view",
     "invoice:manage",
-    "activity:view",
   ],
   MANAGER: [
     "dashboard:view",
     "approval:view",
     "approval:decide",
     "activity:view",
+    "reports:view",
   ],
   VENDOR: [
     "dashboard:view",
     "rfq:view",
     "quotation:submit",
     "po:view",
-    "invoice:view",
   ],
 };
 
