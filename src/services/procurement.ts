@@ -18,7 +18,10 @@ export async function listRFQs(): Promise<RFQ[]> {
     orderBy: { createdAt: "desc" },
     include: { items: true, vendors: true },
   });
-  return rfqs as unknown as RFQ[];
+  return rfqs.map((rfq: any) => ({
+    ...rfq,
+    vendorIds: rfq.vendors?.map((v: any) => v.vendorId) || [],
+  })) as unknown as RFQ[];
 }
 
 export async function getRFQ(id: string): Promise<RFQ | undefined> {
@@ -26,7 +29,11 @@ export async function getRFQ(id: string): Promise<RFQ | undefined> {
     where: { id },
     include: { items: true, vendors: true },
   });
-  return rfq ? (rfq as unknown as RFQ) : undefined;
+  if (!rfq) return undefined;
+  return {
+    ...rfq,
+    vendorIds: (rfq as any).vendors?.map((v: any) => v.vendorId) || [],
+  } as unknown as RFQ;
 }
 
 export async function createRFQ(input: {

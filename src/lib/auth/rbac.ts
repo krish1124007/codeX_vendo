@@ -48,31 +48,27 @@ export const PERMISSIONS: Record<Role, Permission[]> = {
   ADMIN: ALL,
   PROCUREMENT_OFFICER: [
     "dashboard:view",
-    "vendor:view",
-    "vendor:manage",
     "rfq:view",
     "rfq:create",
     "quotation:compare",
-    "approval:view",
     "po:view",
     "invoice:view",
     "invoice:manage",
-    "reports:view",
     "activity:view",
   ],
   MANAGER: [
     "dashboard:view",
-    "vendor:view",
-    "rfq:view",
-    "quotation:compare",
     "approval:view",
     "approval:decide",
-    "po:view",
-    "invoice:view",
-    "reports:view",
     "activity:view",
   ],
-  VENDOR: ["dashboard:view", "rfq:view", "quotation:submit", "po:view", "invoice:view"],
+  VENDOR: [
+    "dashboard:view",
+    "rfq:view",
+    "quotation:submit",
+    "po:view",
+    "invoice:view",
+  ],
 };
 
 export function can(role: Role, permission: Permission): boolean {
