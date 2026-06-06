@@ -126,6 +126,13 @@ export default async function VendorsPage({
                           </form>
                         </div>
                       )}
+                      {v.status === "ACTIVE" && (
+                        <div className="flex justify-end gap-3">
+                          <Link href={`/vendors/${v.id}`} className="text-xs font-medium text-primary hover:underline">
+                            View
+                          </Link>
+                        </div>
+                      )}
                     </TD>
                   )}
                 </TR>

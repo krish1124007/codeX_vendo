@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "@/lib/auth/rbac";
-import { createQuotation, selectQuotation } from "@/services/procurement";
+import { createQuotation, selectQuotation, updateQuotation, getQuotationByRfqAndVendor } from "@/services/procurement";
 
 /** Procurement officer selects the winning quotation → starts approval workflow. */
 export async function selectQuotationAction(
@@ -15,8 +15,9 @@ export async function selectQuotationAction(
   return { ok: true };
 }
 
-/** Vendor submits a quotation against an RFQ. */
+/** Vendor submits or updates a quotation against an RFQ. */
 export async function submitQuotationAction(input: {
+  id?: string;
   rfqId: string;
   vendorId: string;
   taxRate: number;
@@ -32,8 +33,18 @@ export async function submitQuotationAction(input: {
     return { error: "Every line item needs a unit price." };
   }
 
-  const quotation = await createQuotation({ ...input, actorName: user.name });
+  // Check if a quotation already exists for this vendor and RFQ
+  const existing = await getQuotationByRfqAndVendor(input.rfqId, input.vendorId);
+  
+  let quotation;
+  if (existing) {
+    quotation = await updateQuotation(existing.id, { ...input, actorName: user.name });
+  } else {
+    quotation = await createQuotation({ ...input, actorName: user.name });
+  }
+
   revalidatePath(`/quotations/${input.rfqId}/compare`);
   revalidatePath("/quotations");
+  revalidatePath(`/rfqs`);
   return { id: quotation.id };
 }

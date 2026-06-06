@@ -55,12 +55,21 @@ export default async function RFQsPage() {
                     <StatusBadge status={rfq.status} />
                   </TD>
                   <TD className="text-right">
-                    <Link
-                      href={`/quotations/${rfq.id}/compare`}
-                      className="text-xs font-medium text-primary hover:underline"
-                    >
-                      Quotations
-                    </Link>
+                    {user.role === "VENDOR" ? (
+                      <Link
+                        href={`/quotations/${rfq.id}/submit`}
+                        className="text-xs font-medium text-primary hover:underline"
+                      >
+                        Submit / Edit Quote
+                      </Link>
+                    ) : (
+                      <Link
+                        href={`/quotations/${rfq.id}/compare`}
+                        className="text-xs font-medium text-primary hover:underline"
+                      >
+                        Quotations
+                      </Link>
+                    )}
                   </TD>
                 </TR>
               ))}

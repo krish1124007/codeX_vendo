@@ -7,25 +7,38 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils/format";
-import type { RFQ, Vendor } from "@/types";
+import type { RFQ, Vendor, Quotation } from "@/types";
 
 export function SubmitQuotationForm({
   rfq,
   vendors,
+  existingQuotation,
 }: {
   rfq: RFQ;
   vendors: Vendor[];
+  existingQuotation?: Quotation;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [vendorId, setVendorId] = useState(vendors[0]?.id ?? "");
-  const [taxRate, setTaxRate] = useState(18);
-  const [deliveryDays, setDeliveryDays] = useState(10);
-  const [paymentTerms, setPaymentTerms] = useState("30 days net");
-  const [notes, setNotes] = useState("");
-  const [prices, setPrices] = useState<number[]>(rfq.items.map(() => 0));
+  const [vendorId, setVendorId] = useState(existingQuotation?.vendorId ?? vendors[0]?.id ?? "");
+  const [taxRate, setTaxRate] = useState(existingQuotation?.taxRate ?? 18);
+  const [deliveryDays, setDeliveryDays] = useState(existingQuotation?.deliveryDays ?? 10);
+  const [paymentTerms, setPaymentTerms] = useState(existingQuotation?.paymentTerms ?? "30 days net");
+  const [notes, setNotes] = useState(existingQuotation?.notes ?? "");
+
+  const initialPrices = useMemo(() => {
+    if (existingQuotation?.items) {
+      return rfq.items.map((it) => {
+        const eqItem = existingQuotation.items.find((i: any) => i.name === it.name);
+        return eqItem ? Number(eqItem.unitPrice) : 0;
+      });
+    }
+    return rfq.items.map(() => 0);
+  }, [rfq.items, existingQuotation]);
+
+  const [prices, setPrices] = useState<number[]>(initialPrices);
 
   const lines = rfq.items.map((it, i) => ({
     name: it.name,
@@ -41,6 +54,7 @@ export function SubmitQuotationForm({
     setError(null);
     startTransition(async () => {
       const res = await submitQuotationAction({
+        id: existingQuotation?.id,
         rfqId: rfq.id,
         vendorId,
         taxRate,
@@ -50,7 +64,7 @@ export function SubmitQuotationForm({
         items: lines.map(({ name, quantity, unitPrice }) => ({ name, quantity, unitPrice })),
       });
       if (res.error) setError(res.error);
-      else router.push(`/quotations/${rfq.id}/compare`);
+      else router.push(`/rfqs`);
     });
   }
 
@@ -170,7 +184,7 @@ export function SubmitQuotationForm({
             )}
 
             <Button className="w-full" disabled={pending || subtotal === 0} onClick={submit}>
-              {pending ? "Submitting…" : "Submit quotation"}
+              {pending ? "Submitting…" : existingQuotation ? "Update quotation" : "Submit quotation"}
             </Button>
           </CardContent>
         </Card>

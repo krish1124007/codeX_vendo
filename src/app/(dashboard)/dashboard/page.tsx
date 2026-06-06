@@ -10,17 +10,18 @@ import { SpendBarChart } from "@/components/charts/spend-bar-chart";
 import { ActivityFeed } from "@/components/activity-feed";
 import { requireUser } from "@/lib/auth/rbac";
 import { getDashboardKpis, getMonthlyTrend } from "@/services/analytics";
-import { listPurchaseOrders } from "@/services/procurement";
+import { listPurchaseOrders, listInvoices } from "@/services/procurement";
 import { listActivity } from "@/services/activity";
 import { getVendorMap } from "@/services/vendors";
-import { formatCompactINR, formatCurrency } from "@/lib/utils/format";
+import { formatCompactINR, formatCurrency, formatDate } from "@/lib/utils/format";
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const [kpis, trend, pos, vendors, activity] = await Promise.all([
+  const [kpis, trend, pos, invoices, vendors, activity] = await Promise.all([
     getDashboardKpis(),
     getMonthlyTrend(),
     listPurchaseOrders(),
+    listInvoices(),
     getVendorMap(),
     listActivity(),
   ]);
@@ -131,7 +132,44 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent invoices</CardTitle>
+            <Link href="/invoices" className="text-xs font-medium text-primary hover:underline">
+              View all
+            </Link>
+          </CardHeader>
+          <CardContent className="pt-3">
+            <Table>
+              <THead>
+                <TR className="hover:bg-transparent">
+                  <TH>Inv #</TH>
+                  <TH>Vendor</TH>
+                  <TH className="text-right">Amount</TH>
+                  <TH>Status</TH>
+                </TR>
+              </THead>
+              <tbody>
+                {invoices.slice(0, 5).map((inv) => (
+                  <TR key={inv.id}>
+                    <TD>
+                      <Link href={`/invoices/${inv.id}`} className="font-medium text-foreground hover:text-primary">
+                        {inv.invoiceNumber}
+                      </Link>
+                    </TD>
+                    <TD className="text-muted">{vendors.get(inv.vendorId)?.name ?? "—"}</TD>
+                    <TD className="text-right font-medium">{formatCurrency(inv.grandTotal)}</TD>
+                    <TD>
+                      <StatusBadge status={inv.status} />
+                    </TD>
+                  </TR>
+                ))}
+              </tbody>
+            </Table>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Recent activity</CardTitle>

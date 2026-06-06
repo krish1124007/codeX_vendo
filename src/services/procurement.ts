@@ -110,6 +110,14 @@ export async function getQuotation(id: string): Promise<Quotation | undefined> {
   return quotation ? (quotation as unknown as Quotation) : undefined;
 }
 
+export async function getQuotationByRfqAndVendor(rfqId: string, vendorId: string): Promise<Quotation | undefined> {
+  const quotation = await prisma.quotation.findUnique({
+    where: { rfqId_vendorId: { rfqId, vendorId } },
+    include: { items: true },
+  });
+  return quotation ? (quotation as unknown as Quotation) : undefined;
+}
+
 export async function listQuotations(): Promise<Quotation[]> {
   const quotations = await prisma.quotation.findMany({
     orderBy: { createdAt: "desc" },
@@ -166,6 +174,59 @@ export async function createQuotation(input: {
     type: "QUOTATION",
     action: "Quotation submitted",
     description: `${vendor?.name ?? "Vendor"} submitted ${quotation.quotationNumber}`,
+    entityType: "QUOTATION",
+    entityId: quotation.id,
+    actorName: input.actorName ?? vendor?.name,
+  });
+  
+  return quotation as unknown as Quotation;
+}
+
+export async function updateQuotation(id: string, input: {
+  taxRate: number;
+  deliveryDays: number;
+  paymentTerms?: string;
+  notes?: string;
+  items: { name: string; quantity: number; unitPrice: number }[];
+  actorName?: string;
+}): Promise<Quotation> {
+  const items = input.items.map((it) => ({
+    name: it.name,
+    quantity: it.quantity,
+    unitPrice: it.unitPrice,
+    total: it.quantity * it.unitPrice,
+  }));
+  const subtotal = items.reduce((s, it) => s + it.total, 0);
+  const taxAmount = Math.round((subtotal * input.taxRate) / 100);
+  const grandTotal = subtotal + taxAmount;
+  
+  await prisma.quotationItem.deleteMany({
+    where: { quotationId: id }
+  });
+
+  const quotation = await prisma.quotation.update({
+    where: { id },
+    data: {
+      subtotal,
+      taxRate: input.taxRate,
+      taxAmount,
+      grandTotal,
+      deliveryDays: input.deliveryDays,
+      paymentTerms: input.paymentTerms,
+      notes: input.notes,
+      items: {
+        create: items,
+      }
+    },
+    include: { items: true },
+  });
+
+  const vendor = await prisma.vendor.findUnique({ where: { id: quotation.vendorId } });
+  
+  await logActivity({
+    type: "QUOTATION",
+    action: "Quotation updated",
+    description: `${vendor?.name ?? "Vendor"} updated ${quotation.quotationNumber}`,
     entityType: "QUOTATION",
     entityId: quotation.id,
     actorName: input.actorName ?? vendor?.name,
